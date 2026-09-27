@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LunchSplit
+{
+    public class ReceiptFormatter
+    {
+        public string Format(Bill bill, List<Attendee> attendees, List<Share> roundedShares)
+        {
+            var splitter = new Splitter();
+            decimal tip = splitter.ComputeTip(bill.Subtotal, bill.TipMode, bill.TipInput);
+            decimal total = bill.Subtotal + bill.Tax + tip;
+            DateTime createdAt = DateTime.Now;
+
+            var lines = new List<string>
+            {
+                $"Student: Ivan Immanuel Shaji",
+                $"Date: {createdAt:yyyy-MM-dd}",
+                $"Created: {createdAt:yyyy-MM-dd HH:mm:ss}",
+                $"Subtotal: ${bill.Subtotal:0.00}",
+                $"Tax: ${bill.Tax:0.00}",
+                $"Tip: ${tip:0.00}",
+                $"Total: ${total:0.00}"
+            };
+
+            foreach (var share in roundedShares)
+            {
+                lines.Add($"{share.Name}: ${share.Amount:0.00}");
+            }
+
+            return string.Join(Environment.NewLine, lines);
+        }
+    }
+}
