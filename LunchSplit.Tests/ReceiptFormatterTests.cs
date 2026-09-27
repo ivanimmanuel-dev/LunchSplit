@@ -54,13 +54,14 @@ namespace LunchSplit.Tests
             var formatter = new ReceiptFormatter();
 
             // Act
+            DateTime before = DateTime.Now;
             string receipt = formatter.Format(bill, attendees, shares);
-            DateTime now = DateTime.Now;
+            DateTime after = DateTime.Now;
 
             // Assert
             Assert.IsTrue(receipt.Contains("Student: Ivan Immanuel Shaji"));
-            Assert.IsTrue(receipt.Contains($"Date: {now:yyyy-MM-dd}"));
-            Assert.IsTrue(receipt.Contains($"Created: {now:yyyy-MM-dd HH:mm}"));
+            Assert.IsTrue(receipt.Contains($"Date: {before:yyyy-MM-dd}") || receipt.Contains($"Date: {after:yyyy-MM-dd}"));
+            Assert.IsTrue(receipt.Contains($"Created: {before:yyyy-MM-dd HH:mm}") || receipt.Contains($"Created: {after:yyyy-MM-dd HH:mm}"));
         }
 
         [TestMethod]
