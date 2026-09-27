@@ -62,5 +62,18 @@ namespace LunchSplit.Tests
             Assert.IsTrue(receipt.Contains($"Date: {now:yyyy-MM-dd}"));
             Assert.IsTrue(receipt.Contains($"Created: {now:yyyy-MM-dd HH:mm}"));
         }
+
+        [TestMethod]
+        public void Format_CsvReceiptExporter_MatchesSchema()
+        {
+            // Arrange
+            // A sample bill and attendees.
+
+            // Act
+            // No CSV exporter exists yet.
+
+            // Assert
+            Assert.Fail("CSV receipt export is not implemented.");
+        }
     }
 }
