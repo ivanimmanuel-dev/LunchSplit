@@ -32,10 +32,17 @@ namespace LunchSplit
                 decimal targetTotal = decimal.Round(originalTotal, 2, MidpointRounding.ToEven);
                 decimal difference = targetTotal - roundedTotal;
 
-                if (difference != 0m && roundedShares.Count > 0)
+                if (difference != 0m)
                 {
-                    Share firstShare = roundedShares[0];
-                    roundedShares[0] = new Share(firstShare.Name, firstShare.Amount + difference);
+                    for (int i = 0; i < rawShares.Count; i++)
+                    {
+                        if (rawShares[i].Amount > 0m)
+                        {
+                            Share share = roundedShares[i];
+                            roundedShares[i] = new Share(share.Name, share.Amount + difference);
+                            break;
+                        }
+                    }
                 }
 
                 return roundedShares;
@@ -66,11 +73,19 @@ namespace LunchSplit
 
                 while (extra > 0m)
                 {
-                    Share share = roundedShares[index];
-                    roundedShares[index] = new Share(share.Name, share.Amount - 0.01m);
+                    if (rawShares[index].Amount > 0m)
+                    {
+                        Share share = roundedShares[index];
+                        roundedShares[index] = new Share(share.Name, share.Amount - 0.01m);
+                        extra = extra - 0.01m;
+                    }
 
-                    extra = extra - 0.01m;
                     index = index + 1;
+
+                    if (index == rawShares.Count)
+                    {
+                        index = 0;
+                    }
                 }
 
                 return roundedShares;
@@ -101,16 +116,23 @@ namespace LunchSplit
 
                 while (missing > 0m)
                 {
-                    Share share = roundedShares[index];
-                    roundedShares[index] = new Share(share.Name, share.Amount + 0.01m);
+                    if (rawShares[index].Amount > 0m)
+                    {
+                        Share share = roundedShares[index];
+                        roundedShares[index] = new Share(share.Name, share.Amount + 0.01m);
+                        missing = missing - 0.01m;
+                    }
 
-                    missing = missing - 0.01m;
                     index = index + 1;
+
+                    if (index == rawShares.Count)
+                    {
+                        index = 0;
+                    }
                 }
 
                 return roundedShares;
             }
-
 
             return rawShares;
         }
