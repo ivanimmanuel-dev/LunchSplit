@@ -10,131 +10,70 @@ namespace LunchSplit
     {
         public List<Share> RoundShares(List<Share> rawShares, RoundingMode mode)
         {
+            if (rawShares.Count == 0 || mode == RoundingMode.NoRounding)
+            {
+                return rawShares;
+            }
+
+            var roundedShares = new List<Share>();
+            decimal rawTotal = 0m;
+            decimal roundedTotal = 0m;
+
+            foreach (var share in rawShares)
+            {
+                decimal roundedAmount = RoundAmount(share.Amount, mode);
+
+                rawTotal = rawTotal + share.Amount;
+                roundedTotal = roundedTotal + roundedAmount;
+                roundedShares.Add(new Share(share.Name, roundedAmount));
+            }
+
+            decimal difference = RoundAmount(rawTotal, mode) - roundedTotal;
+            int index = 0;
+
+            while (difference != 0m)
+            {
+                bool canAdjust = rawShares[index].Amount > 0m && (difference > 0m || roundedShares[index].Amount >= 0.01m);
+
+                if (canAdjust)
+                {
+                    decimal adjustment = 0.01m;
+                    if (difference < 0m)
+                    {
+                        adjustment = -0.01m;
+                    }
+
+                    Share share = roundedShares[index];
+                    roundedShares[index] = new Share(share.Name, share.Amount + adjustment);
+                    difference = difference - adjustment;
+                }
+
+                index++;
+                if (index == rawShares.Count)
+                {
+                    index = 0;
+                }
+            }
+
+            return roundedShares;
+        }
+
+        private decimal RoundAmount(decimal amount, RoundingMode mode)
+        {
             if (mode == RoundingMode.BankersRounding)
             {
-                var roundedShares = new List<Share>();
-
-                foreach (var share in rawShares)
-                {
-                    decimal amount = decimal.Round(share.Amount, 2, MidpointRounding.ToEven);
-                    roundedShares.Add(new Share(share.Name, amount));
-                }
-
-                decimal originalTotal = 0m;
-                decimal roundedTotal = 0m;
-
-                for (int i = 0; i < rawShares.Count; i++)
-                {
-                    originalTotal = originalTotal + rawShares[i].Amount;
-                    roundedTotal = roundedTotal + roundedShares[i].Amount;
-                }
-
-                decimal targetTotal = decimal.Round(originalTotal, 2, MidpointRounding.ToEven);
-                decimal difference = targetTotal - roundedTotal;
-
-                if (difference != 0m)
-                {
-                    for (int i = 0; i < rawShares.Count; i++)
-                    {
-                        if (rawShares[i].Amount > 0m)
-                        {
-                            Share share = roundedShares[i];
-                            roundedShares[i] = new Share(share.Name, share.Amount + difference);
-                            break;
-                        }
-                    }
-                }
-
-                return roundedShares;
+                return decimal.Round(amount, 2, MidpointRounding.ToEven);
             }
-
             if (mode == RoundingMode.RoundUp)
             {
-                var roundedShares = new List<Share>();
-
-                foreach (var share in rawShares)
-                {
-                    decimal amount = decimal.Ceiling(share.Amount * 100m) / 100m;
-                    roundedShares.Add(new Share(share.Name, amount));
-                }
-
-                decimal originalTotal = 0m;
-                decimal roundedTotal = 0m;
-
-                for (int i = 0; i < rawShares.Count; i++)
-                {
-                    originalTotal = originalTotal + rawShares[i].Amount;
-                    roundedTotal = roundedTotal + roundedShares[i].Amount;
-                }
-
-                decimal targetTotal = decimal.Ceiling(originalTotal * 100m) / 100m;
-                decimal extra = roundedTotal - targetTotal;
-                int index = 0;
-
-                while (extra > 0m)
-                {
-                    if (rawShares[index].Amount > 0m)
-                    {
-                        Share share = roundedShares[index];
-                        roundedShares[index] = new Share(share.Name, share.Amount - 0.01m);
-                        extra = extra - 0.01m;
-                    }
-
-                    index = index + 1;
-
-                    if (index == rawShares.Count)
-                    {
-                        index = 0;
-                    }
-                }
-
-                return roundedShares;
+                return decimal.Ceiling(amount * 100m) / 100m;
             }
-            
             if (mode == RoundingMode.RoundDown)
             {
-                var roundedShares = new List<Share>();
-
-                foreach (var share in rawShares)
-                {
-                    decimal amount = decimal.Floor(share.Amount * 100m) / 100m;
-                    roundedShares.Add(new Share(share.Name, amount));
-                }
-
-                decimal originalTotal = 0m;
-                decimal roundedTotal = 0m;
-
-                for (int i = 0; i < rawShares.Count; i++)
-                {
-                    originalTotal = originalTotal + rawShares[i].Amount;
-                    roundedTotal = roundedTotal + roundedShares[i].Amount;
-                }
-
-                decimal targetTotal = decimal.Floor(originalTotal * 100m) / 100m;
-                decimal missing = targetTotal - roundedTotal;
-                int index = 0;
-
-                while (missing > 0m)
-                {
-                    if (rawShares[index].Amount > 0m)
-                    {
-                        Share share = roundedShares[index];
-                        roundedShares[index] = new Share(share.Name, share.Amount + 0.01m);
-                        missing = missing - 0.01m;
-                    }
-
-                    index = index + 1;
-
-                    if (index == rawShares.Count)
-                    {
-                        index = 0;
-                    }
-                }
-
-                return roundedShares;
+                return decimal.Floor(amount * 100m) / 100m;
             }
 
-            return rawShares;
+            throw new ArgumentOutOfRangeException(nameof(mode));
         }
     }
 }
