@@ -20,10 +20,13 @@ namespace LunchSplit
                 $"Student: Ivan Immanuel Shaji",
                 $"Date: {createdAt:yyyy-MM-dd}",
                 $"Created: {createdAt:yyyy-MM-dd HH:mm:ss}",
+                "",
                 $"Subtotal: ${bill.Subtotal:0.00}",
                 $"Tax: ${bill.Tax:0.00}",
                 $"Tip: ${tip:0.00}",
-                $"Total: ${total:0.00}"
+                $"Total: ${total:0.00}",
+                "",
+                "Shares:"
             };
 
             foreach (var share in roundedShares)
