@@ -6,8 +6,17 @@ using System.Threading.Tasks;
 
 namespace LunchSplit
 {
+    /// <summary>
+    /// Checks for empty attendee lists, negative bill amounts, and negative weights.
+    /// </summary>
     public class BillValidator
     {
+        /// <summary>
+        /// Checks the inputs and reports the first validation failure.
+        /// </summary>
+        /// <param name="bill">The bill to validate.</param>
+        /// <param name="attendees">The attendee list to validate.</param>
+        /// <returns>The validation outcome and any failure message.</returns>
         public ValidationResult Validate(Bill bill, List<Attendee> attendees)
         {
             if (attendees.Count == 0)

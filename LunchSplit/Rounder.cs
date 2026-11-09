@@ -6,8 +6,23 @@ using System.Threading.Tasks;
 
 namespace LunchSplit
 {
+    /// <summary>
+    /// Rounds shares and adjusts leftover cents so their total stays consistent.
+    /// </summary>
     public class Rounder
     {
+        /// <summary>
+        /// Rounds each share, then distributes penny adjustments until the sum
+        /// matches the raw total rounded using the same mode.
+        /// </summary>
+        /// <param name="rawShares">The shares before rounding.</param>
+        /// <param name="mode">The rounding rule to apply.</param>
+        /// <returns>
+        /// The rounded shares, or the original list when it is empty or NoRounding is selected.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// An unsupported mode is used while rounding.
+        /// </exception>
         public List<Share> RoundShares(List<Share> rawShares, RoundingMode mode)
         {
             if (rawShares.Count == 0 || mode == RoundingMode.NoRounding)
@@ -33,6 +48,7 @@ namespace LunchSplit
 
             while (difference != 0m)
             {
+                // Keep zero shares at zero and avoid subtracting more than a share contains.
                 bool canAdjust = rawShares[index].Amount > 0m && (difference > 0m || roundedShares[index].Amount >= 0.01m);
 
                 if (canAdjust)

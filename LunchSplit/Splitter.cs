@@ -6,8 +6,21 @@ using System.Threading.Tasks;
 
 namespace LunchSplit
 {
+    /// <summary>
+    /// Calculates tips and divides the bill among included attendees by weight.
+    /// </summary>
     public class Splitter
     {
+        /// <summary>
+        /// Calculates the tip using the selected mode.
+        /// </summary>
+        /// <param name="subtotal">The amount before tax and tip.</param>
+        /// <param name="tipMode">Whether to use no tip, a percentage, or a fixed amount.</param>
+        /// <param name="tipInput">The percentage or fixed dollar amount.</param>
+        /// <returns>The calculated tip amount.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// The subtotal or fixed tip amount is negative.
+        /// </exception>
         public decimal ComputeTip(decimal subtotal, TipMode tipMode, decimal tipInput)
         {
             if(subtotal < 0m)
@@ -32,6 +45,20 @@ namespace LunchSplit
             return 0m;
         }
 
+        /// <summary>
+        /// Splits the total by attendee weight and rounds the shares.
+        /// Excluded attendees receive zero.
+        /// </summary>
+        /// <param name="bill">The bill amounts and tip settings.</param>
+        /// <param name="attendees">The participants and their split settings.</param>
+        /// <param name="roundingMode">The rounding rule applied to the shares.</param>
+        /// <returns>One share per attendee, in the original order.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// The subtotal or fixed tip amount is negative, or the rounding mode is unsupported.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// The total weight of included attendees is zero or negative.
+        /// </exception>
         public List<Share> CalculateShares(Bill bill, List<Attendee> attendees, RoundingMode roundingMode)
         {
             decimal tip = ComputeTip(bill.Subtotal, bill.TipMode, bill.TipInput);
@@ -80,6 +107,7 @@ namespace LunchSplit
                 }
             }
 
+            // Correct any decimal division remainder before rounding to cents.
             Share lastPayingShare = rawShares[lastPayingIndex];
             rawShares[lastPayingIndex] = new Share(lastPayingShare.Name, lastPayingShare.Amount + (grandTotal - rawTotal));
 

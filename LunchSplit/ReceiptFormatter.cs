@@ -6,8 +6,18 @@ using System.Threading.Tasks;
 
 namespace LunchSplit
 {
+    /// <summary>
+    /// Creates an itemized text receipt with bill totals and attendee shares.
+    /// </summary>
     public class ReceiptFormatter
     {
+        /// <summary>
+        /// Formats the bill and shares with the student name, date, and creation time.
+        /// </summary>
+        /// <param name="bill">The bill amounts and tip settings.</param>
+        /// <param name="attendees">The attendees associated with the bill.</param>
+        /// <param name="roundedShares">The calculated shares to display.</param>
+        /// <returns>The receipt as a multiline string.</returns>
         public string Format(Bill bill, List<Attendee> attendees, List<Share> roundedShares)
         {
             var splitter = new Splitter();
