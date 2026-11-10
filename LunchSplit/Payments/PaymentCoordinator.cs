@@ -27,6 +27,6 @@ public class PaymentCoordinator
             return Task.FromResult(new PaymentResult(false, ErrorCode: "INVALID_AMOUNT"));
         }
 
-        throw new NotImplementedException();
+        return processor.ProcessPaymentAsync(request);
     }
 }

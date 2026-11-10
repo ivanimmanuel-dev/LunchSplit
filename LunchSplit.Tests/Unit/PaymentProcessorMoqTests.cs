@@ -39,4 +39,27 @@ public class PaymentProcessorMoqTests
         Assert.AreEqual("INVALID_AMOUNT", result.ErrorCode);
         mock.Verify(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>()), Times.Never());
     }
+
+    /// <summary>Passes the exact payment details to the processor once.</summary>
+    [TestMethod]
+    public async Task PayAsync_ValidRequest_PassesExactAmountOnce()
+    {
+        // Arrange
+        var request = new PaymentRequest(30m, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-ok");
+
+        var mock = new Mock<IPaymentProcessor>();
+        mock.Setup(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>())).ReturnsAsync(new PaymentResult(true, "tx_amount"));
+
+        var coordinator = new PaymentCoordinator(mock.Object);
+
+        // Act
+        var result = await coordinator.PayAsync(request);
+
+        // Assert
+        Assert.IsTrue(result.IsSuccess);
+
+        mock.Verify(p => p.ProcessPaymentAsync(It.Is<PaymentRequest>(r => r.Amount == 30m && r.Currency == "CAD" && r.IdempotencyKey == request.IdempotencyKey && r.CardNonce == request.CardNonce)), Times.Once());
+
+        mock.VerifyNoOtherCalls();
+    }
 }
