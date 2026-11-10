@@ -122,4 +122,39 @@ public class PaymentProcessorMoqTests
             mock.Verify(p => p.ProcessPaymentAsync(request), Times.Once());
         }
     }
+
+    /// <summary>Continues processing after the second attendee's payment declines.</summary>
+    [TestMethod]
+    public async Task PayBatchAsync_SecondAttendeeDeclines_ReturnsTwoSuccessesAndOneFailure()
+    {
+        // Arrange
+        var bill = new Bill(100m, 0m, TipMode.None, 0m);
+        var attendees = new List<Attendee>
+        {
+        new("Ivan", 1, true),
+        new("Johan", 1, true),
+        new("Kevin", 1, true)
+        };
+
+        var shares = new Splitter().CalculateShares(bill, attendees, RoundingMode.BankersRounding);
+
+        var requests = shares.Select(share => new PaymentRequest(share.Amount, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-ok")).ToList();
+
+        var mock = new Mock<IPaymentProcessor>();
+        mock.SetupSequence(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>())).ReturnsAsync(new PaymentResult(true, "tx_first")).ReturnsAsync(new PaymentResult(false, ErrorCode: "CARD_DECLINED")).ReturnsAsync(new PaymentResult(true, "tx_third"));
+
+        var coordinator = new PaymentCoordinator(mock.Object);
+
+        // Act
+        var summary = await coordinator.PayBatchAsync(requests);
+
+        // Assert
+        Assert.AreEqual(2, summary.SuccessCount);
+        Assert.AreEqual(1, summary.FailureCount);
+        Assert.IsFalse(summary.Results[1].IsSuccess);
+        Assert.AreEqual("CARD_DECLINED", summary.Results[1].ErrorCode);
+        Assert.AreEqual("tx_third", summary.Results[2].TransactionId);
+
+        mock.Verify(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>()), Times.Exactly(3));
+    }
 }
