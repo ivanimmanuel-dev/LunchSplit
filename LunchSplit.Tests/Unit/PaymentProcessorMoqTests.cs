@@ -85,4 +85,41 @@ public class PaymentProcessorMoqTests
 
         Assert.AreSame(networkError, exception.InnerException);
     }
+
+    /// <summary>Processes each of four attendee shares exactly once.</summary>
+    [TestMethod]
+    public async Task PayBatchAsync_FourAttendees_CallsProcessorFourTimes()
+    {
+        // Arrange
+        var bill = new Bill(100m, 0m, TipMode.None, 0m);
+        var attendees = new List<Attendee>
+        {
+        new("Ivan", 1, true),
+        new("Johan", 1, true),
+        new("Kevin", 1, true),
+        new("Neha", 1, true)
+        };
+
+        var shares = new Splitter().CalculateShares(bill, attendees, RoundingMode.BankersRounding);
+
+        var requests = shares.Select(share => new PaymentRequest(share.Amount, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-ok")).ToList();
+
+        var mock = new Mock<IPaymentProcessor>();
+        mock.Setup(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>())).ReturnsAsync(new PaymentResult(true, "tx_batch"));
+
+        var coordinator = new PaymentCoordinator(mock.Object);
+
+        // Act
+        var summary = await coordinator.PayBatchAsync(requests);
+
+        // Assert
+        Assert.AreEqual(4, summary.SuccessCount);
+
+        mock.Verify(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>()), Times.Exactly(4));
+
+        foreach (var request in requests)
+        {
+            mock.Verify(p => p.ProcessPaymentAsync(request), Times.Once());
+        }
+    }
 }

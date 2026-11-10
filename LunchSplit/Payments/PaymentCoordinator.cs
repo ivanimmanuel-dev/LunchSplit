@@ -44,5 +44,21 @@ public class PaymentCoordinator
             throw new PaymentGatewayTimeoutException(
                 "The payment gateway request timed out.", exception);
         }
+
+    }
+
+    /// <summary>Attempts each payment and collects the results.</summary>
+    public async Task<BatchPaymentResult> PayBatchAsync(IReadOnlyList<PaymentRequest> requests)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+
+        var results = new List<PaymentResult>();
+
+        foreach (var request in requests)
+        {
+            results.Add(await PayAsync(request));
+        }
+
+        return new BatchPaymentResult(results.AsReadOnly());
     }
 }
