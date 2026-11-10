@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="appsettings.example.json" />
+    <File Path="CODEMAP.md" />
+  </Folder>
+  <Project Path="LunchSplit.Infrastructure/LunchSplit.Infrastructure.csproj" Id="dd725a6f-886d-45b2-8547-bc5b82f79a63" />
   <Project Path="LunchSplit.Tests/LunchSplit.Tests.csproj" />
   <Project Path="LunchSplit/LunchSplit.csproj" />
 </Solution>

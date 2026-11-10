@@ -8,10 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSTest" Version="4.0.2" />
+    <PackageReference Include="Moq" Version="4.21.0" />
+    <PackageReference Include="MSTest" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LunchSplit.Infrastructure\LunchSplit.Infrastructure.csproj" />
     <ProjectReference Include="..\LunchSplit\LunchSplit.csproj" />
   </ItemGroup>
 
