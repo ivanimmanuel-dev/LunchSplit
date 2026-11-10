@@ -62,4 +62,27 @@ public class PaymentProcessorMoqTests
 
         mock.VerifyNoOtherCalls();
     }
+
+    /// <summary>Translates a network failure into a payment gateway exception.</summary>
+    [TestMethod]
+    public async Task PayAsync_NetworkFailure_ThrowsPaymentGatewayTimeoutException()
+    {
+        // Arrange
+        var request = new PaymentRequest(30m, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-ok");
+
+        var networkError = new HttpRequestException("Simulated gateway timeout.");
+
+        var mock = new Mock<IPaymentProcessor>();
+        mock.Setup(p => p.ProcessPaymentAsync(request)).ThrowsAsync(networkError);
+
+        var coordinator = new PaymentCoordinator(mock.Object);
+
+        // Act
+        Func<Task> pay = () => coordinator.PayAsync(request);
+
+        // Assert
+        var exception = await Assert.ThrowsExactlyAsync<PaymentGatewayTimeoutException>(pay);
+
+        Assert.AreSame(networkError, exception.InnerException);
+    }
 }

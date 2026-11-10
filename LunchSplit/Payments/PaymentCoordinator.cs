@@ -18,15 +18,31 @@ public class PaymentCoordinator
     }
 
     /// <summary>Validates a request before attempting payment.</summary>
-    public Task<PaymentResult> PayAsync(PaymentRequest request)
+    /// <exception cref="PaymentGatewayTimeoutException">
+    /// The processor encounters a connection failure or timeout.
+    /// </exception>
+    public async Task<PaymentResult> PayAsync(PaymentRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         if (request.Amount <= 0m)
         {
-            return Task.FromResult(new PaymentResult(false, ErrorCode: "INVALID_AMOUNT"));
+            return new PaymentResult(false, ErrorCode: "INVALID_AMOUNT");
         }
 
-        return processor.ProcessPaymentAsync(request);
+        try
+        {
+            return await processor.ProcessPaymentAsync(request);
+        }
+        catch (HttpRequestException exception)
+        {
+            throw new PaymentGatewayTimeoutException(
+                "The payment gateway could not be reached.", exception);
+        }
+        catch (TaskCanceledException exception)
+        {
+            throw new PaymentGatewayTimeoutException(
+                "The payment gateway request timed out.", exception);
+        }
     }
 }
