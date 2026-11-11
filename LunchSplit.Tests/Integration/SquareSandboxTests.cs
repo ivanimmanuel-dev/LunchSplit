@@ -14,6 +14,7 @@ namespace LunchSplit.Tests.Integration;
 [DoNotParallelize]
 public class SquareSandboxTests
 {
+    /// <summary>Verifies that a successful Sandbox payment returns a transaction ID.</summary>
     [TestMethod]
     public async Task ProcessPaymentAsync_ValidNonce_ReturnsSuccessAndTransactionId()
     {
@@ -30,5 +31,24 @@ public class SquareSandboxTests
         // Assert
         Assert.IsTrue(result.IsSuccess, $"Square rejected the payment: {result.ErrorCode}.");
         Assert.IsFalse(string.IsNullOrWhiteSpace(result.TransactionId));
+    }
+
+    /// <summary>Verifies that a Sandbox card decline returns CARD_DECLINED.</summary>
+    [TestMethod]
+    public async Task ProcessPaymentAsync_DeclinedNonce_ReturnsCardDeclined()
+    {
+        // Arrange
+        var settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        var settings = SquareSandboxSettings.Load(settingsPath);
+        using var service = new SquarePaymentService(settings.AccessToken, settings.LocationId);
+
+        var request = new PaymentRequest(1.00m, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-declined");
+
+        // Act
+        var result = await service.ProcessPaymentAsync(request);
+
+        // Assert
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual("CARD_DECLINED", result.ErrorCode);
     }
 }
