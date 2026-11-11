@@ -42,7 +42,7 @@ public class SquarePaymentService : IPaymentProcessor, IDisposable
             return new PaymentResult(false, ErrorCode: "INVALID_AMOUNT");
         }
 
-        // Square expects an integer amount in cents.
+        // Convert the payment amount from dollars to cents for Square.
         long cents = checked((long)(request.Amount * 100m));
 
         var squareRequest = new CreatePaymentRequest
@@ -58,17 +58,32 @@ public class SquarePaymentService : IPaymentProcessor, IDisposable
             Autocomplete = true
         };
 
-        var response = await client.Payments.CreateAsync(squareRequest);
-        var payment = response.Payment;
-
-        if (payment is null || string.IsNullOrWhiteSpace(payment.Id))
+        try
         {
-            return new PaymentResult(false, ErrorCode: "MISSING_PAYMENT");
-        }
+            var response = await client.Payments.CreateAsync(squareRequest);
+            var payment = response.Payment;
 
-        string status = payment.Status?.ToString() ?? "";
-        bool success = status == "COMPLETED" || status == "APPROVED";
-        return new PaymentResult(success, payment.Id, success ? null : status);
+            if (payment is null || string.IsNullOrWhiteSpace(payment.Id))
+            {
+                return new PaymentResult(false, ErrorCode: "MISSING_PAYMENT");
+            }
+
+            string status = payment.Status?.ToString() ?? "";
+            bool success = status == "COMPLETED" || status == "APPROVED";
+            return new PaymentResult(success, payment.Id, success ? null : status);
+        }
+        catch (SquareApiException exception)
+        {
+            string? code = exception.Errors.FirstOrDefault()?.Code.ToString();
+
+            if (code == "GENERIC_DECLINE" || code == "CARD_DECLINED")
+            {
+                // Map Square's decline to CARD_DECLINED.
+                return new PaymentResult(false, ErrorCode: "CARD_DECLINED", HttpStatusCode: exception.StatusCode, GatewayErrorCode: code);
+            }
+
+            throw;
+        }
     }
 
     public Task<DomainPaymentStatus> GetTransactionStatusAsync(string transactionId)
