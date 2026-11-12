@@ -92,11 +92,19 @@ public class SquarePaymentService : IPaymentProcessor, IDisposable
         }
     }
 
-    public Task<DomainPaymentStatus> GetTransactionStatusAsync(string transactionId)
+    /// <summary>Retrieves the current status of a payment from Square Sandbox.</summary>
+    public async Task<DomainPaymentStatus> GetTransactionStatusAsync(string transactionId)
     {
-        throw new NotImplementedException();
+        ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
+
+        var response = await client.Payments.GetAsync(new GetPaymentsRequest { PaymentId = transactionId });
+
+        string? status = response.Payment?.Status?.ToString();
+
+        return Enum.TryParse<DomainPaymentStatus>(status, out var paymentStatus) ? paymentStatus : DomainPaymentStatus.UNKNOWN;
     }
 
+    /// <summary>Disposes the HTTP client used for Square requests.</summary>
     public void Dispose()
     {
         httpClient.Dispose();
