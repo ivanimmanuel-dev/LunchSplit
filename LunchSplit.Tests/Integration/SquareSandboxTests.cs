@@ -92,4 +92,28 @@ public class SquareSandboxTests
         Assert.IsFalse(string.IsNullOrWhiteSpace(first.TransactionId));
         Assert.AreEqual(first.TransactionId, second.TransactionId);
     }
+
+    /// <summary>Verifies that a completed Sandbox payment can be looked up by its ID.</summary>
+    [TestMethod]
+    public async Task GetTransactionStatusAsync_CompletedPayment_ReturnsCompleted()
+    {
+        // Arrange
+        var settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        var settings = SquareSandboxSettings.Load(settingsPath);
+        using var service = new SquarePaymentService(settings.AccessToken, settings.LocationId);
+
+        var request = new PaymentRequest(1.00m, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-ok");
+
+        var payment = await service.ProcessPaymentAsync(request);
+        Assert.IsTrue(payment.IsSuccess, $"Square rejected the payment: {payment.ErrorCode}.");
+
+        var transactionId = payment.TransactionId;
+        Assert.IsNotNull(transactionId);
+
+        // Act
+        var status = await service.GetTransactionStatusAsync(transactionId);
+
+        // Assert
+        Assert.AreEqual(PaymentStatus.COMPLETED, status);
+    }
 }
