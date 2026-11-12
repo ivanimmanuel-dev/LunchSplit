@@ -51,4 +51,23 @@ public class SquareSandboxTests
         Assert.IsFalse(result.IsSuccess);
         Assert.AreEqual("CARD_DECLINED", result.ErrorCode);
     }
+
+    /// <summary>Verifies that Square rejects EUR payments at the CAD location.</summary>
+    [TestMethod]
+    public async Task ProcessPaymentAsync_IncompatibleCurrency_ReturnsHttp400()
+    {
+        // Arrange
+        var settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        var settings = SquareSandboxSettings.Load(settingsPath);
+        using var service = new SquarePaymentService(settings.AccessToken, settings.LocationId);
+
+        var request = new PaymentRequest(1.00m, "EUR", Guid.NewGuid().ToString(), "cnon:card-nonce-ok");
+
+        // Act
+        var result = await service.ProcessPaymentAsync(request);
+
+        // Assert
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual(400, result.HttpStatusCode);
+    }
 }
