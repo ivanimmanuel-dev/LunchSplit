@@ -18,7 +18,7 @@ LunchSplit is a .NET 8 console app that splits a restaurant bill among attendees
 
 ## Requirements
 
-The .NET 8 SDK and Visual Studio or the .NET command-line tools.
+.NET 10 SDK, .NET 8 runtime and either Visual Studio or the .NET command-line tools.
 
 
 ## Build and run
@@ -35,22 +35,25 @@ dotnet run --project LunchSplit/LunchSplit.csproj
 
 `Program.cs` runs a sample bill and prints its receipt.
 
+## Square Sandbox Setup
+
+The payment integration tests use Square Sandbox. Copy appsettings.example.json to appsettings.json in the repository root and in the Square section, set AccessToken and LocationId to the Sandbox access token and CAD location ID from a Canadian test account. [Square Sandbox setup](https://developer.squareup.com/docs/devtools/sandbox/overview)
+
 
 ## Tests
 
-The test project is `LunchSplit.Tests`. A full test run shows 31 passing tests and two expected failures:
+The test project is `LunchSplit.Tests`. A full test run shows 41 passing tests and two expected failures (CSV export and Stripe placeholders).
+
+Run the local tests without Square credentials:
 
 ```powershell
-
-dotnet test LunchSplit.Tests/LunchSplit.Tests.csproj
-
+dotnet test --filter "TestCategory!=Tier1"
 ```
 
-To run the 31 implemented tests on their own:
+After setting up Square Sandbox, run the full suite from the repository root:
 
 ```powershell
-
-dotnet test LunchSplit.Tests/LunchSplit.Tests.csproj --filter "FullyQualifiedName!~CsvReceiptExporter&FullyQualifiedName!~PaymentRequest"
-
+dotnet test
 ```
 
+See [CODEMAP.md](CODEMAP.md) for the source and test locations.
