@@ -70,4 +70,26 @@ public class SquareSandboxTests
         Assert.IsFalse(result.IsSuccess);
         Assert.AreEqual(400, result.HttpStatusCode);
     }
+
+    /// <summary>Verifies that retrying a payment returns its original transaction ID.</summary>
+    [TestMethod]
+    public async Task ProcessPaymentAsync_RepeatedRequest_ReturnsSameTransactionId()
+    {
+        // Arrange
+        var settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        var settings = SquareSandboxSettings.Load(settingsPath);
+        using var service = new SquarePaymentService(settings.AccessToken, settings.LocationId);
+
+        var request = new PaymentRequest(1.00m, "CAD", Guid.NewGuid().ToString(), "cnon:card-nonce-ok");
+
+        // Act
+        var first = await service.ProcessPaymentAsync(request);
+        var second = await service.ProcessPaymentAsync(request);
+
+        // Assert
+        Assert.IsTrue(first.IsSuccess);
+        Assert.IsTrue(second.IsSuccess);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(first.TransactionId));
+        Assert.AreEqual(first.TransactionId, second.TransactionId);
+    }
 }
