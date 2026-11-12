@@ -82,6 +82,12 @@ public class SquarePaymentService : IPaymentProcessor, IDisposable
                 return new PaymentResult(false, ErrorCode: "CARD_DECLINED", HttpStatusCode: exception.StatusCode, GatewayErrorCode: code);
             }
 
+            if (exception.StatusCode == 400)
+            {
+                // Return Square's validation error for a bad request.
+                return new PaymentResult(false, ErrorCode: code ?? "BAD_REQUEST", HttpStatusCode: exception.StatusCode, GatewayErrorCode: code);
+            }
+
             throw;
         }
     }
