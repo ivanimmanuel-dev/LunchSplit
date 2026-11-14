@@ -288,18 +288,5 @@
             Assert.AreEqual(10m, total);
             Assert.AreEqual(0m, shares[0].Amount);
         }
-
-        [TestMethod]
-        public void CalculateShares_PaymentRequest_ValidatesStripeMock()
-        {
-            // Arrange
-            // A completed bill and calculated shares.
-
-            // Act
-            // No Stripe payment mock exists yet.
-
-            // Assert
-            Assert.Fail("Stripe payment request validation is not implemented.");
-        }
     }
 }

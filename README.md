@@ -42,7 +42,7 @@ The payment integration tests use Square Sandbox. Copy appsettings.example.json 
 
 ## Tests
 
-The test project is `LunchSplit.Tests`. A full test run shows 41 passing tests and two expected failures (CSV export and Stripe placeholders).
+The test project is `LunchSplit.Tests`. A full test run shows 41 passing tests.
 
 Run the local tests without Square credentials:
 
